@@ -1,0 +1,47 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}WordWise AI{% endblock %}</title>
+  <link rel="icon" href="data:,">
+  {% block meta %}{% endblock %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap">
+  <link rel="stylesheet" href="{% static 'quiz/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  {# {% url ... as x %} gives an empty string (no error) when a route does not exist #}
+  {% url 'index' as quiz_url %}
+  {% url 'library:word_list' as library_url %}
+  {% url 'library:topic_list' as topics_url %}
+  <header class="top">
+    <div class="top-inner">
+      <a class="brand" href="{{ quiz_url|default:'/' }}" id="brand">WordWise</a>
+      <nav class="main-nav" aria-label="Main">
+        {% if quiz_url %}<a href="{{ quiz_url }}" class="{% block nav_quiz %}{% endblock %}">Practice</a>{% endif %}
+        {% if library_url %}<a href="{{ library_url }}" class="{% block nav_library %}{% endblock %}">Word library</a>{% endif %}
+        {% if topics_url %}<a href="{{ topics_url }}" class="{% block nav_topics %}{% endblock %}">Topics</a>{% endif %}
+      </nav>
+      <div class="top-actions">
+        {% block header_extra %}{% endblock %}
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-brand">WordWise</span>
+      <span>Django vocabulary project · INT253</span>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

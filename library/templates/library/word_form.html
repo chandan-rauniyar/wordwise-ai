@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} · WordWise AI{% endblock %}
+{% block nav_library %}active{% endblock %}
+
+{% block content %}
+<p class="crumbs"><a href="{% url 'library:word_list' %}">Library</a> › {{ title }}</p>
+<h1>{{ title }}</h1>
+
+<form class="stack-form" method="post" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <div class="form-row">
+      <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="meta">{{ field.help_text }}</p>{% endif %}
+      {{ field.errors }}
+    </div>
+  {% endfor %}
+  <div class="form-actions">
+    <button class="btn primary" type="submit">{{ button }}</button>
+    <a class="link" href="{% if word %}{{ word.get_absolute_url }}{% else %}{% url 'library:word_list' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

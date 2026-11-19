@@ -1,0 +1,210 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordWise</title>
+  <link rel="icon" href="data:,">
+  <meta name="description"
+    content="Practise English vocabulary with short quizzes: similar and opposite words, meanings, fill in the blank, word forms, spelling and odd one out.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap">
+  <link rel="stylesheet" href="{% static 'quiz/style.css' %}">
+</head>
+
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="brand" href="/" id="brand">WordWise</a>
+
+      <nav class="main-nav" aria-label="Main">
+        <a href="/" class="active">Practice</a>
+        <a href="{% url 'library:word_list' %}">Word library</a>
+        <a href="{% url 'library:topic_list' %}">Topics</a>
+      </nav>
+
+      <div class="top-actions">
+        <span class="chip" id="scoreChip" hidden></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+
+    <!-- Home -->
+    <section id="view-home" class="view home-view">
+      <div class="home-intro">
+        <p class="eyebrow"><span aria-hidden="true"></span> A little practice, a lot of progress</p>
+        <h1>Learn a word, <em>then use it.</em></h1>
+        <p class="lede">Build your vocabulary with five focused questions at a time. Practise a word, explore a topic,
+          or work through your own list.</p>
+      </div>
+
+      <div class="home-grid">
+        <div class="home-main">
+          <form id="startForm" class="setup-card" novalidate>
+            <div class="card-heading">
+              <div>
+                <p class="section-kicker">Your next round</p>
+                <h2>Practice setup</h2>
+                <p class="card-subtitle">Choose how you’d like to practise.</p>
+              </div>
+              <span class="heading-mark" aria-hidden="true">Aa</span>
+            </div>
+
+            <label class="field-label" for="wordInput">Word to practise <span class="optional">Optional</span></label>
+            <input id="wordInput" class="field" type="text" inputmode="text" autocomplete="off" autocapitalize="none"
+              spellcheck="false" maxlength="30" placeholder="Try a word, like admire">
+
+            <fieldset class="levels">
+              <legend class="field-label">Difficulty</legend>
+              <label><input type="radio" name="difficulty" value="EASY" checked><span
+                  class="level-dot easy"></span><span>Easy</span></label>
+              <label><input type="radio" name="difficulty" value="MEDIUM"><span
+                  class="level-dot medium"></span><span>Medium</span></label>
+              <label><input type="radio" name="difficulty" value="HARD"><span
+                  class="level-dot hard"></span><span>Hard</span></label>
+            </fieldset>
+
+            <div class="pick">
+              <label class="field-label" for="topicSelect">Topic <span class="optional">Optional</span></label>
+              <select id="topicSelect" class="select">
+                <option value="">Any topic</option>
+                {% for topic in topics %}<option value="{{ topic.key }}">{{ topic.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <p id="homeError" class="error" role="alert" hidden></p>
+            <button id="startBtn" class="btn primary" type="submit">Start quiz</button>
+          </form>
+
+          <details id="wordlistBox" class="wordlist">
+            <summary>
+              <span class="list-icon" aria-hidden="true">≡</span>
+              <span class="wordlist-summary">
+                <span class="title">My custom word list</span>
+                <span class="wordlist-caption">Practise your own words in one round</span>
+              </span>
+              <span id="listCount" class="count"></span>
+              <span class="chev" aria-hidden="true">⌄</span>
+            </summary>
+            <div class="listbody">
+              <label class="field-label" for="listInput">Your words</label>
+              <textarea id="listInput" class="area" rows="5" spellcheck="false" autocapitalize="none"
+                placeholder="One word per line, or separated by commas"></textarea>
+              <p id="listError" class="error" role="alert" hidden></p>
+              <div class="list-actions">
+                <p class="note">Up to 20 words. Your list stays in this browser.</p>
+                <div class="list-buttons">
+                  <button id="listClear" class="link" type="button">Clear list</button>
+                  <button id="listStart" class="btn primary small" type="button">Practise my list</button>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <aside class="home-side" aria-label="Vocabulary and review">
+          <section id="wotd" class="wotd side-card" hidden aria-labelledby="wotdLabel">
+            <div class="side-card-top">
+              <p id="wotdLabel" class="wotd-label">Word of the day</p>
+              <span class="wotd-badge">Today's word</span>
+            </div>
+            <div class="wotd-row">
+              <p id="wotdWord" class="wotd-word"></p>
+              <button type="button" id="wotdSpeak" class="speak" aria-label="Hear the word"></button>
+            </div>
+            <p id="wotdDef" class="wotd-def"></p>
+            <p id="wotdExample" class="example"></p>
+            <button id="wotdPractise" class="btn ghost small" type="button">Practise this word <span
+                aria-hidden="true">→</span></button>
+          </section>
+
+          <section id="reviewPanel" class="review-card side-card" aria-labelledby="reviewHeading">
+            <div class="review-icon" aria-hidden="true">↻</div>
+            <div>
+              <p class="section-kicker">Keep it fresh</p>
+              <h2 id="reviewHeading">Review &amp; remember</h2>
+              <p id="reviewNote" class="review-note" hidden></p>
+              <p class="review-help">Questions you miss can return in future rounds, so you get another chance to learn
+                them.</p>
+            </div>
+          </section>
+
+          <p class="privacy">Your progress is saved only in this browser. Nothing about you is stored on our server.
+            <button type="button" id="clearBtn" class="link">Clear my progress</button>
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <section id="view-loading" class="view" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="loadingText" class="loading">Preparing your questions…</p>
+      <p class="note">New words can take up to half a minute the first time.</p>
+    </section>
+
+    <!-- Question -->
+    <section id="view-quiz" class="view" hidden>
+      <div class="q-meta">
+        <span id="qCount">Question 1 of 5</span>
+        <span id="reviewTag" class="tag" hidden>Review</span>
+      </div>
+
+      <div id="prompt" class="prompt" tabindex="-1">
+        <p id="promptLead" class="prompt-lead"></p>
+        <div id="promptLine" class="prompt-line" hidden>
+          <p id="promptWord" class="prompt-word"></p>
+          <button type="button" id="promptSpeak" class="speak" aria-label="Hear the word"></button>
+        </div>
+        <p id="promptSentence" class="prompt-sentence" hidden></p>
+      </div>
+
+      <div id="options" class="options"></div>
+
+      <div id="feedback" class="feedback" role="status" aria-live="polite" hidden>
+        <span id="feedbackText"></span>
+        <button type="button" id="listenBtn" class="speak labelled"
+          aria-label="Hear the answer"><span>Listen</span></button>
+      </div>
+      <p id="quizError" class="error" role="alert" hidden></p>
+
+      <div class="actions">
+        <ol id="segments" class="segments" aria-label="Round progress"></ol>
+        <button id="skipBtn" class="link" type="button">Skip</button>
+        <button id="nextBtn" class="btn primary small" type="button" hidden>Next</button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="view-results" class="view" hidden>
+      <div class="score-row">
+        <div id="ring" class="ring"><span id="ringText">0/5</span></div>
+        <div>
+          <p id="scoreLine" class="score-line">Score 0</p>
+          <h2 id="scoreMessage">Keep practising</h2>
+          <p id="scoreNote" class="note" hidden></p>
+        </div>
+      </div>
+
+      <div class="results-actions">
+        <button id="nextRoundBtn" class="btn primary" type="button">Next round</button>
+        <button id="homeBtn" class="btn ghost" type="button">Change word or topic</button>
+      </div>
+
+      <h3 class="list-title">Explanations</h3>
+      <div id="explanations" class="explanations"></div>
+    </section>
+
+  </main>
+
+  <script src="{% static 'quiz/app.js' %}" defer></script>
+</body>
+
+</html>

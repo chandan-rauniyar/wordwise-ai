@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ word.text|title }} · WordWise AI{% endblock %}
+{% block nav_library %}active{% endblock %}
+
+{% block content %}
+<p class="crumbs">
+  <a href="{% url 'library:word_list' %}">Library</a> ›
+  <a href="{{ word.topic.get_absolute_url }}">{{ word.topic.name }}</a> ›
+  {{ word.text }}
+</p>
+
+{% if done %}<p class="notice" role="status">{{ done }}</p>{% endif %}
+
+<div class="page-head">
+  <div>
+    <h1>{{ word.text|title }}</h1>
+    <p class="meta">
+      {{ word.get_part_of_speech_display|lower }}
+      · <span class="badge level-{{ word.difficulty|lower }}">{{ word.get_difficulty_display }}</span>
+      · <a href="{% url 'library:words_by_difficulty' word.difficulty|lower %}">more {{ word.difficulty|lower }} words</a>
+    </p>
+  </div>
+  <div class="actions-inline">
+    <a class="btn ghost small linkbtn" href="{% url 'library:word_update' word.slug %}">Edit</a>
+    <a class="btn ghost small linkbtn danger" href="{% url 'library:word_delete' word.slug %}">Delete</a>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Meaning</h2>
+  <p class="definition">{{ word.definition }}</p>
+  <p class="meta">
+    Added {{ word.created_at|date:"d M Y" }}
+    {% if word.updated_at|date:"Ymd" != word.created_at|date:"Ymd" %}· updated {{ word.updated_at|date:"d M Y" }}{% endif %}
+    · <a href="{% url 'library:words_by_year' word.created_at|date:'Y' %}">all words added in {{ word.created_at|date:"Y" }}</a>
+  </p>
+</section>
+
+<section class="panel">
+  <h2>Examples</h2>
+  {% for example in word.examples.all %}
+    <div class="example-line">
+      <p>“{{ example.sentence }}”</p>
+      <form method="post" action="{% url 'library:example_delete' example.pk %}">
+        {% csrf_token %}
+        <button class="link danger" type="submit" aria-label="Remove this example">Remove</button>
+      </form>
+    </div>
+  {% empty %}
+    <p class="meta">No examples yet. Add the first one below.</p>
+  {% endfor %}
+
+  <form class="inline-form" method="post" action="{% url 'library:example_add' word.slug %}">
+    {% csrf_token %}
+    <label class="field-label" for="{{ example_form.sentence.id_for_label }}">Add an example</label>
+    {{ example_form.sentence }}
+    {{ example_form.sentence.errors }}
+    <button class="btn primary small" type="submit">Add example</button>
+  </form>
+</section>
+
+{% if related %}
+  <section class="panel">
+    <h2>More {{ word.topic.name }} words</h2>
+    <ul class="chips">
+      {% for other in related %}
+        <li><a href="{{ other.get_absolute_url }}">{{ other.text }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+<p class="meta">Data for this page as JSON: <a href="{% url 'library:api_word_detail' word.slug %}">{% url 'library:api_word_detail' word.slug %}</a></p>
+{% endblock %}
